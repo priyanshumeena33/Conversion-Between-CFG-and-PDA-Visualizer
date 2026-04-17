@@ -1,1 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CFG ↔ PDA Conversion Visualizer</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.tailwindcss.com"></script>
 
+<style>
+/* Existing Styles */
+.section { display: none; }
+.section.active { display: block; }
+
+.example-buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* =========================================
+   NEW THEORY UI STYLES (MATCHING IMAGE) 
+========================================= */
+.theory-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 20px;
+}
+@media (max-width: 900px) {
+    .theory-wrapper { grid-template-columns: 1fr; }
+}
+
+.concept-card {
+    background: #11141c; 
+    border: 1px solid #232838;
+    border-radius: 12px;
+    padding: 24px;
+    color: #a0aabf;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.concept-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+}
+
+.dot {
+    width: 8px; height: 8px; border-radius: 50%;
+}
+.dot.cfg { background-color: #00d2ff; box-shadow: 0 0 8px #00d2ff; }
+.dot.pda { background-color: #a855f7; box-shadow: 0 0 8px #a855f7; }
+
+.concept-desc { font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; }
+
+.section-divider {
+    display: flex;
+    align-items: center;
+    color: #6b7280;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+.section-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #232838;
+    margin-left: 16px;
+}
+
+.rule-box {
+    display: flex;
+    align-items: flex-start;
+    background: #161923;
+    border: 1px solid #232838;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: transform 0.2s;
+}
+.rule-box:hover {
+    transform: translateY(-2px);
+    border-color: #374151;
+}
+
+.badge {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 1.1rem; color: white;
+    margin-right: 16px; flex-shrink: 0;
+}
+.badge.b-cfg { background: #3b82f6; }
+.badge.b-pda { background: #8b5cf6; }
+
+.rule-content h4 { color: #ffffff; margin: 0 0 6px 0; font-size: 0.95rem; font-weight: 600; }
+.rule-content p { margin: 0; font-size: 0.85rem; color: #9ca3af; line-height: 1.5; }
+
+.rule-code {
+    display: inline-block;
+    color: #00e5ff;
+    font-family: monospace;
+    font-size: 0.9rem;
+    margin-top: 10px;
+}
+</style>
+
+</head>
+
+<body class="bg-[#0b0e14] text-white">
+
+<div class="top-nav">
+    <div class="nav-pill">
+        <button class="nav-item active" onclick="switchTab(event,'cfg')">CFG → PDA</button>
+        <button class="nav-item" onclick="switchTab(event,'pda')">PDA → CFG</button>
+        <button class="nav-item" onclick="switchTab(event,'theory')">Theory</button>
+    </div>
+</div>
+
+<div class="w-full max-w-[1400px] mx-auto px-6 py-8"></div>
+
+<header class="text-center mb-10">
+    <h1 class="text-3xl font-bold text-white mb-2">CFG ↔ PDA</h1>
+    <p class="subtitle text-gray-400">Conversion Visualizer</p>
+</header>
+
+<div class="main-content">
+
+<div id="theory-section" class="section">
+    <div class="theory-wrapper">
+
+        <div class="concept-card">
+            <div class="concept-header">
+                <div class="dot cfg"></div>
+                CONTEXT-FREE GRAMMARS
+            </div>
+            
+            <p class="concept-desc">
+                A CFG is a 4-tuple <b>G = (V, Σ, R, S)</b> where V is a set of variables, Σ is the terminal alphabet, R is a set of production rules, and S is the start variable.
+            </p>
+
+            <div class="section-divider">PRODUCTION RULE FORM</div>
+
+            <div class="rule-box">
+                <div class="badge b-cfg">A</div>
+                <div class="rule-content">
+                    <h4>Head → Body</h4>
+                    <p>Each rule has a single variable (head) that can be replaced by a string of variables and terminals (body).</p>
+                    <div class="rule-code">A → α where A ∈ V, α ∈ (V ∪ Σ)*</div>
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="badge b-cfg">ε</div>
+                <div class="rule-content">
+                    <h4>Epsilon Rules</h4>
+                    <p>Variables can derive the empty string, written as A → ε. This allows generation of finite strings.</p>
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="badge b-cfg">L</div>
+                <div class="rule-content">
+                    <h4>Language Generated</h4>
+                    <p>L(G) = {w ∈ Σ* | S ⇒* w}, the set of all terminal strings derivable from S.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-card">
+            <div class="concept-header">
+                <div class="dot pda"></div>
+                PUSHDOWN AUTOMATA
+            </div>
+            
+            <p class="concept-desc">
+                A PDA is a 7-tuple <b>P = (Q, Σ, Γ, δ, q₀, Z₀, F)</b> where Q is states, Σ input alphabet, Γ stack alphabet, δ transition function, q₀ start state, Z₀ initial stack symbol, F accept states.
+            </p>
+
+            <div class="section-divider">TRANSITION FUNCTION</div>
+
+            <div class="rule-box">
+                <div class="badge b-pda">δ</div>
+                <div class="rule-content">
+                    <h4>δ: Q × Σ_ε × Γ → P(Q × Γ*)</h4>
+                    <p>Takes current state, input symbol (or ε), and top of stack; returns set of (new state, stack push) pairs.</p>
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="badge b-pda">Z</div>
+                <div class="rule-content">
+                    <h4>Stack Operations</h4>
+                    <p>Pop by reading stack top. Push by writing symbols. Replace by reading top and writing new symbols.</p>
+                </div>
+            </div>
+
+            <div class="rule-box">
+                <div class="badge b-pda">F</div>
+                <div class="rule-content">
+                    <h4>Acceptance</h4>
+                    <p>Accept by final state: reach F with any stack. Or accept by empty stack: empty the stack on any state.</p>
+                </div>
+            </div>
+            
+            
+        </div>
+
+    </div>
+    <div class="concept-card mt-8 border-[#FEE715]/20 bg-[#11141c] p-6 rounded-xl shadow-2xl">
+    <div class="concept-header flex items-center gap-3 mb-4">
+        <div class="dot w-3 h-3 rounded-full" style="background: #FEE715; box-shadow: 0 0 10px #FEE715;"></div>
+        <span class="text-lg font-bold tracking-widest text-white">EQUIVALENCE THEOREM</span>
+    </div>
+    
+    <p class="concept-desc text-gray-300 mb-8 leading-relaxed">
+        <b class="text-[#FEE715]">Theorem:</b> A language is context-free if and only if some pushdown automaton recognizes it. This means CFGs and PDAs are equivalent in expressive power.
+    </p>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        <div class="space-y-4">
+            <div class="section-divider flex items-center text-[#FEE715] text-xs font-bold tracking-tighter uppercase mb-6 after:content-[''] after:flex-1 after:border-b after:border-[#FEE715]/30 after:ml-4">
+                CFG → PDA CONSTRUCTION
+            </div>
+            
+            <div class="rule-box flex gap-4 p-4 border border-[#FEE715]/10 bg-[#161923] rounded-lg hover:border-[#FEE715]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #FEE715; color: #000;">1</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Create 3 states</h4>
+                    <p class="text-gray-400 text-sm">q₀ (start), q₁ (loop/derive), qf (accept). Initialize stack with start symbol S and Z₀.</p>
+                    <div class="rule-code mt-2 font-mono text-sm text-[#00d2ff]">Q = {q₀, q₁, qf}</div>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#FEE715]/10 bg-[#161923] rounded-lg hover:border-[#FEE715]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #FEE715; color: #000;">2</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Initialization</h4>
+                    <p class="text-gray-400 text-sm">δ(q₀, ε, Z₀) → (q₁, SZ₀). ε-move to push start symbol S on top of Z₀.</p>
+                    <div class="rule-code mt-2 font-mono text-sm text-[#00d2ff]">δ(q₀, ε, Z₀) = (q₁, SZ₀)</div>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#FEE715]/10 bg-[#161923] rounded-lg hover:border-[#FEE715]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #FEE715; color: #000;">3</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Productions</h4>
+                    <p class="text-gray-400 text-sm">For each rule A → w: ε-move at q₁, pop A, push w in reverse order.</p>
+                    <div class="rule-code mt-2 font-mono text-sm text-[#00d2ff]">δ(q₁, ε, A) = (q₁, rev(w))</div>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#FEE715]/10 bg-[#161923] rounded-lg hover:border-[#FEE715]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #FEE715; color: #000;">4</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Terminal match + Accept</h4>
+                    <p class="text-gray-400 text-sm">δ(q₁, a, a) scans terminals. δ(q₁, ε, Z₀) → (qf, ε) accepts at the end.</p>
+                    <div class="rule-code mt-2 font-mono text-sm text-[#00d2ff]">δ(q₁, a, a) = (q₁, ε)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-4">
+            <div class="section-divider flex items-center text-[#00d2ff] text-xs font-bold tracking-tighter uppercase mb-6 after:content-[''] after:flex-1 after:border-b after:border-[#00d2ff]/30 after:ml-4">
+                PDA → CFG CONSTRUCTION
+            </div>
+            
+            <div class="rule-box flex gap-4 p-4 border border-[#00d2ff]/10 bg-[#161923] rounded-lg hover:border-[#00d2ff]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #00d2ff; color: #000;">1</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Normalize PDA</h4>
+                    <p class="text-gray-400 text-sm">Ensure PDA has a single accept state and empties stack on acceptance.</p>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#00d2ff]/10 bg-[#161923] rounded-lg hover:border-[#00d2ff]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #00d2ff; color: #000;">2</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Create variables [p,X,q]</h4>
+                    <p class="text-gray-400 text-sm">Variable represents strings that take PDA from state p to q while popping X.</p>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#00d2ff]/10 bg-[#161923] rounded-lg hover:border-[#00d2ff]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #00d2ff; color: #000;">3</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Add production rules</h4>
+                    <p class="text-gray-400 text-sm">S → [q₀, Z₀, q] for all states q. If δ(p, a, X) = (q, ε), add [p,X,q] → a.</p>
+                </div>
+            </div>
+
+            <div class="rule-box flex gap-4 p-4 border border-[#00d2ff]/10 bg-[#161923] rounded-lg hover:border-[#00d2ff]/40 transition-all">
+                <div class="badge flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center font-bold text-lg" style="background: #00d2ff; color: #000;">4</div>
+                <div class="rule-content">
+                    <h4 class="text-white font-semibold mb-1">Chain rules for pushes</h4>
+                    <p class="text-gray-400 text-sm">For push transitions, generate all intermediate state combinations to form a chain.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+<div id="cfg-section" class="section active">
+
+<div class="split-layout flex flex-nowrap gap-10 justify-start items-start">
+
+<div class="left-panel w-[650px] flex-shrink-0">
+
+<div class="input-section compact bg-[#11141c] border border-[#232838] p-5 rounded-xl">
+<h2 class="text-xl font-semibold mb-4">Input Context-Free Grammar</h2>
+
+<div class="input-group">
+<label class="block text-gray-400 mb-2">CFG Rules (one per line):</label>
+
+<div class="symbol-bar mb-2">
+<button onclick="insertSymbol('ε')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">ε</button>
+<button onclick="insertSymbol('→')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">→</button>
+<button onclick="insertSymbol('|')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">|</button>
+</div>
+
+<textarea id="cfg-input" rows="6" class="w-full bg-[#0b0e14] border border-[#232838] rounded p-3 text-white"
+placeholder="S -> aSb | ε"></textarea>
+</div>
+
+<div class="button-group mt-4 flex gap-3">
+<button onclick="convertCFGtoPDA()" class="btn-primary bg-[#00d2ff] text-black px-4 py-2 rounded font-semibold hover:bg-[#00b8e6]">Convert to PDA</button>
+<button onclick="clearCFGInput()" class="btn-secondary border border-[#374151] px-4 py-2 rounded hover:bg-[#232838]">Clear</button>
+</div>
+
+<div class="example-buttons mt-4">
+<button onclick="setCFGExample('anbn')" class="btn-secondary border border-[#374151] px-3 py-1 rounded text-sm hover:bg-[#232838]">aⁿbⁿ</button>
+<button onclick="setCFGExample('palindrome')" class="btn-secondary border border-[#374151] px-3 py-1 rounded text-sm hover:bg-[#232838]">Palindrome</button>
+<button onclick="setCFGExample('equal')" class="btn-secondary border border-[#374151] px-3 py-1 rounded text-sm hover:bg-[#232838]">Equal a,b</button>
+<button onclick="setCFGExample('simple')" class="btn-secondary border border-[#374151] px-3 py-1 rounded text-sm hover:bg-[#232838]">aⁿ</button>
+</div>
+
+</div>
+
+<div id="cfg-steps" style="display:none;" class="mt-6">
+<div id="cfg-steps-content" class="bg-[#11141c] border border-[#232838] p-5 rounded-xl"></div>
+</div>
+
+</div>
+
+<div class="right-panel flex-1 min-w-[300px]" id="cfg-pda-result" style="display:none;">
+<div class="result-section compact bg-[#11141c] border border-[#232838] p-5 rounded-xl">
+
+<h2 class="text-xl font-semibold mb-4">Equivalent PDA</h2>
+
+<div id="pda-definition" class="mb-4 text-gray-300"></div>
+<div id="pda-transitions-content" class="bg-[#0b0e14] p-4 rounded font-monospace text-[#00d2ff]"></div>
+<svg id="pda-diagram" width="100%" height="300" class="mt-4 border border-[#232838] rounded bg-[#0b0e14]"></svg>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<div id="pda-section" class="section">
+
+<h2 class="text-xl font-semibold mb-4">Input Pushdown Automaton</h2>
+
+<div class="pda-top-row flex gap-6 mb-6">
+
+<div class="pda-left flex-1 bg-[#11141c] border border-[#232838] p-5 rounded-xl">
+<div class="input-group">
+<label class="block text-gray-400 mb-2">Transitions</label>
+<div class="symbol-bar mb-2">
+    <button onclick="insertPDASymbol('ε')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">ε</button>
+    <button onclick="insertPDASymbol('→')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">→</button>
+    <button onclick="insertPDASymbol('|')" class="symbol-btn bg-[#232838] px-3 py-1 rounded hover:bg-[#374151]">|</button>
+</div>
+<textarea id="pda-transitions-input" rows="6" class="w-full bg-[#0b0e14] border border-[#232838] rounded p-3 text-white"></textarea>
+</div>
+</div>
+
+<div class="auto-fields w-[250px] space-y-4 bg-[#11141c] border border-[#232838] p-5 rounded-xl">
+<div class="input-group">
+<label class="block text-gray-400 mb-1">Start State</label>
+<input id="auto-start-state" readonly class="w-full bg-[#0b0e14] border border-[#232838] rounded p-2 text-white">
+</div>
+
+<div class="input-group">
+<label class="block text-gray-400 mb-1">Accept States</label>
+<input id="auto-final-states" readonly class="w-full bg-[#0b0e14] border border-[#232838] rounded p-2 text-white">
+</div>
+</div>
+
+</div>
+
+<div class="flex gap-3 mb-6">
+<button onclick="convertPDAtoCFG()" class="btn-primary bg-[#a855f7] text-white px-4 py-2 rounded font-semibold hover:bg-[#9333ea]">Convert to CFG</button>
+<button onclick="loadPDAExample()" class="btn-secondary border border-[#374151] px-4 py-2 rounded hover:bg-[#232838]">Example PDA</button>
+<button onclick="clearPDAInput()" class="btn-secondary border border-[#374151] px-4 py-2 rounded hover:bg-[#232838]">Clear</button>
+</div>
+
+
+<div id="pda-steps" style="display:none;">
+    <div class="steps-result-wrapper flex gap-6">
+
+        <div id="pda-steps-content" class="flex-1 bg-[#11141c] border border-[#232838] p-5 rounded-xl"></div>
+
+        <div class="final-cfg-side w-[350px] bg-[#11141c] border border-[#232838] p-5 rounded-xl">
+            <h3 class="text-xl font-semibold text-[#00d2ff] mb-4">Final CFG</h3>
+            <div id="final-cfg-pda" class="font-monospace text-lg leading-loose text-white"></div>
+        </div>
+
+    </div>
+</div>
+
+<div id="pda-cfg-result" style="display:none;"></div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+function switchTab(evt, tab){
+    document.querySelectorAll('.section').forEach(s=>{
+        s.classList.remove('active');
+    });
+
+    document.getElementById(tab+'-section').classList.add('active');
+
+    document.querySelectorAll('.nav-item').forEach(b=>{
+        b.classList.remove('active');
+    });
+
+    evt.currentTarget.classList.add('active');
+}
+</script>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>
